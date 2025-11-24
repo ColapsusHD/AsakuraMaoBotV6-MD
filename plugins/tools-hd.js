@@ -1,33 +1,41 @@
 import fs from "fs"
 import axios from "axios"
 import uploadImage from "../lib/uploadImage.js"
+import FileType from "file-type"
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    // Detectar si hay imagen enviada junto al comando
+    // Detectar la imagen
     const q = m.quoted ? m.quoted : m
-    const mime =
+    let mime =
       q.mimetype ||
       q.mediaType ||
       q.msg?.mimetype ||
       q.message?.imageMessage?.mimetype ||
-      (m.msg && m.msg.mimetype) ||
+      m.message?.imageMessage?.mimetype ||
       ""
 
-    if (!mime) throw `Debes enviar o responder una imagen.\n\nUso: *${usedPrefix + command}*`
-    if (!/image\/(jpe?g|png)/i.test(mime)) throw `El archivo (${mime}) no es una imagen válida.`
+    // Descargar la imagen
+    const img = await q.download()
+    if (!img) throw `Debes enviar o responder una imagen.\n\nUso: *${usedPrefix + command}*`
 
-    // ⏳ Reacción mientras procesa
+    // Si WhatsApp NO entrega mimetype (caso del error), lo detectamos del archivo
+    if (!mime) {
+      const type = await FileType.fromBuffer(img)
+      if (type) mime = type.mime
+    }
+
+    if (!/image\/(jpe?g|png)/i.test(mime))
+      throw `El archivo (${mime}) no es una imagen válida.`
+
+    // Reacción mientras procesa
     await conn.sendMessage(m.chat, { react: { text: "⏳", key: m.key } })
-
     m.reply("Procesando tu imagen, por favor espera…")
 
-    // ↓ Funciona tanto con imagen respondida como con imagen adjunta
-    const img = await q.download()
-    if (!img) throw "No pude descargar la imagen."
-
+    // Subir imagen
     const fileUrl = await uploadImage(img)
 
+    // Mejorar imagen
     const resultado = await upscaleWithStellar(fileUrl)
 
     await conn.sendMessage(
@@ -36,11 +44,9 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       { quoted: m }
     )
 
-    // ✔️ Reacción final de éxito
     await conn.sendMessage(m.chat, { react: { text: "✔️", key: m.key } })
 
   } catch (e) {
-    // ❌ Reacción de error
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } })
     throw `⚠️ Error procesando la imagen.\n${e}`
   }
@@ -53,11 +59,9 @@ export default handler
 
 async function upscaleWithStellar(url) {
   const endpoint = `https://api.stellarwa.xyz/tools/upscale?url=${url}&key=BrunoSobrino`
-
   const { data } = await axios.get(endpoint, {
     responseType: "arraybuffer",
     headers: { accept: "image/*" }
   })
-
   return Buffer.from(data)
 }
