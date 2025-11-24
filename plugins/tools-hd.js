@@ -1,9 +1,8 @@
 import fs from "fs"
 import axios from "axios"
-import uploadImage from "../lib/uploadImage.js"
+import uploadImage from "../src/libraries/uploadImage.js"
 
 const handler = async (m, { conn, usedPrefix, command }) => {
-
   try {
     const q = m.quoted ? m.quoted : m
 
@@ -17,26 +16,30 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     if (!mime) throw `Debes responder o enviar una imagen.\nUso: *${usedPrefix + command}*`
     if (!/image\/(jpe?g|png)/i.test(mime)) throw `El archivo (${mime}) no es una imagen válida.`
 
+    // ⏳ Reacción de reloj mientras procesa
+    await conn.sendMessage(m.chat, { react: { text: "⏳", key: m.key } })
+
     m.reply("Procesando tu imagen, espera un momento…")
 
-    // Descargar imagen
     const img = await q.download()
     if (!img) throw "No pude descargar la imagen."
 
-    // Subir imagen
     const fileUrl = await uploadImage(img)
 
-    // Upscale con Stellar API
     const resultado = await upscaleWithStellar(fileUrl)
 
-    // Enviar imagen final
     await conn.sendMessage(
       m.chat,
       { image: resultado, caption: "✔️ Imagen mejorada correctamente." },
       { quoted: m }
     )
 
+    // ✔️ Cambia la reacción al terminar
+    await conn.sendMessage(m.chat, { react: { text: "✔️", key: m.key } })
+
   } catch (e) {
+    // ❌ Reacción de error
+    await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } })
     throw `⚠️ Ocurrió un error.\n${e}`
   }
 }
