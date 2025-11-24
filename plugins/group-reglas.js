@@ -1,13 +1,15 @@
-module.exports = {
-  name: "reglas",
-  alias: ["rules", "reglasgrupo", "rulesgrupo", "rulesgroup"],
-  description: "Muestra las reglas del grupo",
-  tags: ["grupo"],
-  group: true,
+let handler = async (m, { conn }) => {
+    m.reply(global.reglas)
+}
 
-  async execute(conn, m) {
+handler.help = ['reglas']
+handler.tags = ['grupo']
+handler.command = ['reglas', 'rules', 'reglasgrupo', 'rulesgrupo', 'rulesgroup']
+handler.group = true
 
-    const reglas = `╰Futabu Club╯
+export default handler
+
+global.reglas = `╰Futabu Club╯
 
 📝| Reglas:
 ❖ Respeto 
@@ -44,9 +46,4 @@ module.exports = {
 ➥ Se permiten ciertos comandos con límites de uso específicos.
 
 ❖ Flood
-➥ Se prohíbe enviar múltiples mensajes idénticos para evitar inundar el chat.
-`;
-
-    await conn.sendMessage(m.chat, { text: reglas }, { quoted: m });
-  }
-}
+➥ Se prohíbe enviar múltiples mensajes idénticos para evitar inundar el chat.`
