@@ -4,30 +4,32 @@ import uploadImage from "../lib/uploadImage.js"
 
 const handler = async (m, { conn }) => {
   try {
-    // Determinar el mensaje que contiene la imagen
+    // Determinar mensaje que contiene la imagen
     let q = m.quoted ? m.quoted : m;
 
-    // Detectar el mimetype de la imagen
+    // Detectar mimetype
     let mime =
-      q.msg?.mimetype ||          // por si es un mensaje citado
-      q.message?.imageMessage?.mimetype || // por si es imagen directa
-      q.mimetype ||               // fallback
-      q.mediaType || "";
+      q.msg?.mimetype ||
+      q.message?.imageMessage?.mimetype ||
+      q.mimetype ||
+      q.mediaType ||
+      "";
 
     if (!mime) throw `❗ Debes enviar o responder una imagen con el comando.`;
     if (!/image\/(jpe?g|png)/.test(mime)) throw `❗ Formato no soportado (${mime}). Usa JPG o PNG.`;
 
     // Mensaje de reloj
-    let statusMsg = await m.reply("⏳ Procesando...");
+    const statusMsg = await conn.sendMessage(
+      m.chat,
+      { text: "⏳ Procesando..." },
+      { quoted: m }
+    );
 
     // Descargar imagen
     let img;
-
     if (q.download) {
-      // Caso mensaje citado o media con .download()
       img = await q.download();
     } else if (q.message?.imageMessage) {
-      // Caso imagen directa con comando
       img = await conn.downloadMediaMessage(q);
     }
 
@@ -46,10 +48,11 @@ const handler = async (m, { conn }) => {
       { quoted: m }
     );
 
-    // Cambiar ⏳ → ✔️
+    // Editar mensaje de ⏳ → ✔️
     await conn.sendMessage(
       m.chat,
-      { text: "✔️ Imagen procesada", edit: statusMsg.key }
+      { text: "✔️ Imagen procesada" },
+      { edit: statusMsg.key }
     );
 
   } catch (e) {
