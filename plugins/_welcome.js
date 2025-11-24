@@ -19,13 +19,12 @@ async function generarBienvenida({ conn, userId, groupMetadata, chat }) {
     .replace(/{grupo}/g, `*${groupMetadata.subject}*`)
     .replace(/{desc}/g, `${desc}`)
 
-  const texto = `❀ Bienvenido a *"_${groupMetadata.subject}_"*
-✰ _Usuario_ » ${username}
-● ${mensaje}
-◆ _Ahora somos ${groupSize} Miembros._
-ꕥ Fecha » ${fecha}
-૮꒰ ˶• ᴗ •˶꒱ა Disfruta tu estadía en el grupo!
-> *➮ Puedes usar _#help_ para ver la lista de comandos.*`
+  const texto = `● ${mensaje}
+  
+> ◆ _Ahora somos ${groupSize} Miembros._
+> ꕥ Fecha » ${fecha}
+
+૮꒰ ˶• ᴗ •˶꒱ა Disfruta tu estadía en el grupo!`
 
   return { texto, mentions: [userId] }
 }
