@@ -43,7 +43,7 @@ global.channel = ""
 global.github = ""
 global.gmail = ""
 global.ch = {
-ch1: "120363401404146384@newsletter"
+ch1: ""
 }
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
