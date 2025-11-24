@@ -18,7 +18,7 @@ const handler = async (m, { conn, text, participants, groupMetadata }) => {
       return { user, reason };
     }
 
-    // 3) → ContextInfo
+    // 3) → ContextInfo (WhatsApp a veces pone menciones acá)
     const ctx = m.message?.extendedTextMessage?.contextInfo;
     if (ctx?.mentionedJid?.length > 0) {
       user = ctx.mentionedJid[0];
@@ -42,27 +42,28 @@ const handler = async (m, { conn, text, participants, groupMetadata }) => {
     );
   }
 
-  // Evitar autokick
-  if (target === conn.user.jid) return m.reply("❗ No puedo expulsarme a mí mismo.");
+  // Evitar autokick del bot
+  if (target === conn.user.jid)
+    return m.reply("❗ No puedo expulsarme a mí mismo.");
 
-  // Obtener admins del grupo
+  // ------ NUEVO: EVITAR BANEAR ADMINS Y OWNER ------
+
   const groupAdmins = participants
-    .filter(p => p.admin)
-    .map(p => p.id);
+    .filter((p) => p.admin === "admin" || p.admin === "superadmin")
+    .map((p) => p.id);
 
-  const owner = groupMetadata.owner || groupAdmins[0]; // fallback
+  const owner = groupMetadata.owner || groupAdmins[0]; // fallback por si WhatsApp no envía owner
 
-  // ❌ Evitar banear al creador
   if (target === owner) {
-    return m.reply("❗ No puedo expulsar al propietario del grupo.");
+    return m.reply("❗ No puedo expulsar al *propietario* del grupo.");
   }
 
-  // ❌ Evitar banear admins
   if (groupAdmins.includes(target)) {
-    return m.reply("❗ No puedo expulsar a un administrador del grupo.");
+    return m.reply("❗ No puedo expulsar a un *administrador*.");
   }
 
-  // Motivo
+  // ----------------------------------------------------
+
   const kickReason = reason || "No especificado";
 
   // Mensaje de anuncio
