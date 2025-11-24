@@ -18,9 +18,7 @@ async function generarBienvenida({ conn, userId, groupMetadata, chat }) {
     .replace(/{usuario}/g, `${username}`)
     .replace(/{desc}/g, `${desc}`)
 
-  const texto = `✰ _Usuario_ » ${username}
-  
-  ● ${mensaje}
+  const texto = `● ${mensaje}
   
 > ◆ _Ahora somos ${groupSize} Miembros._
 > ꕥ Fecha » ${fecha}
@@ -55,7 +53,7 @@ handler.before = async function (m, { conn, groupMetadata }) {
 
     await conn.sendMessage(
       m.chat,
-      { text: texto, ...rcanal },
+      { text: texto },
       { quoted: null }
     )
   }
