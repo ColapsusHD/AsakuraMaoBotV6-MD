@@ -18,11 +18,15 @@ const handler = async (m, { conn }) => {
     if (!mime) throw `❗ Debes enviar o responder una imagen con el comando.`;
     if (!/image\/(jpe?g|png)/.test(mime)) throw `❗ Formato no soportado (${mime}). Usa JPG o PNG.`;
 
-    // Mensaje de reloj
-    const statusMsg = await conn.sendMessage(
+    // Agregar reacción de reloj ⏳ al mensaje original
+    const statusReaction = await conn.sendMessage(
       m.chat,
-      { text: "⏳ Procesando..." },
-      { quoted: m }
+      {
+        react: {
+          text: "⏳",
+          key: m.key
+        }
+      }
     );
 
     // Descargar imagen
@@ -48,11 +52,15 @@ const handler = async (m, { conn }) => {
       { quoted: m }
     );
 
-    // Editar mensaje de ⏳ → ✔️
+    // Cambiar reacción a ✔️
     await conn.sendMessage(
       m.chat,
-      { text: "✔️ Imagen procesada" },
-      { edit: statusMsg.key }
+      {
+        react: {
+          text: "✔️",
+          key: m.key
+        }
+      }
     );
 
   } catch (e) {
