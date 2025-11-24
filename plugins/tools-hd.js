@@ -4,23 +4,25 @@ import uploadImage from "../src/libraries/uploadImage.js"
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
+    // Detectar si hay imagen enviada junto al comando
     const q = m.quoted ? m.quoted : m
-
     const mime =
       q.mimetype ||
       q.mediaType ||
       q.msg?.mimetype ||
-      q.mtype ||
+      q.message?.imageMessage?.mimetype ||
+      (m.msg && m.msg.mimetype) ||
       ""
 
-    if (!mime) throw `Debes responder o enviar una imagen.\nUso: *${usedPrefix + command}*`
+    if (!mime) throw `Debes enviar o responder una imagen.\n\nUso: *${usedPrefix + command}*`
     if (!/image\/(jpe?g|png)/i.test(mime)) throw `El archivo (${mime}) no es una imagen válida.`
 
-    // ⏳ Reacción de reloj mientras procesa
+    // ⏳ Reacción mientras procesa
     await conn.sendMessage(m.chat, { react: { text: "⏳", key: m.key } })
 
-    m.reply("Procesando tu imagen, espera un momento…")
+    m.reply("Procesando tu imagen, por favor espera…")
 
+    // ↓ Funciona tanto con imagen respondida como con imagen adjunta
     const img = await q.download()
     if (!img) throw "No pude descargar la imagen."
 
@@ -34,13 +36,13 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       { quoted: m }
     )
 
-    // ✔️ Cambia la reacción al terminar
+    // ✔️ Reacción final de éxito
     await conn.sendMessage(m.chat, { react: { text: "✔️", key: m.key } })
 
   } catch (e) {
     // ❌ Reacción de error
     await conn.sendMessage(m.chat, { react: { text: "❌", key: m.key } })
-    throw `⚠️ Ocurrió un error.\n${e}`
+    throw `⚠️ Error procesando la imagen.\n${e}`
   }
 }
 
