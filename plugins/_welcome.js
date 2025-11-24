@@ -39,7 +39,7 @@ handler.before = async function (m, { conn, groupMetadata }) {
   const chat = global.db.data.chats[m.chat]
   const userId = m.messageStubParameters[0]
 
-  // SOLO SE MANDA TEXTO — SIN IMAGEN
+  // SOLO TEXTO — SIN IMAGEN — SIN rcanal
   if (chat.welcome && m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
 
     const { texto, mentions } = await generarBienvenida({
@@ -49,11 +49,12 @@ handler.before = async function (m, { conn, groupMetadata }) {
       chat
     })
 
-    rcanal.contextInfo.mentionedJid = mentions
-
     await conn.sendMessage(
       m.chat,
-      { text: texto, ...rcanal }
+      {
+        text: texto,
+        mentions
+      }
     )
   }
 }
