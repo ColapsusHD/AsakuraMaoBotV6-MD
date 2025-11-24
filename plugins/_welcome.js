@@ -16,10 +16,11 @@ async function generarBienvenida({ conn, userId, groupMetadata, chat }) {
 
   const mensaje = (chat.sWelcome || 'Edita con el comando "setwelcome"')
     .replace(/{usuario}/g, `${username}`)
-    .replace(/{grupo}/g, `*${groupMetadata.subject}*`)
     .replace(/{desc}/g, `${desc}`)
 
-  const texto = `● ${mensaje}
+  const texto = `✰ _Usuario_ » ${username}
+  
+  ● ${mensaje}
   
 > ◆ _Ahora somos ${groupSize} Miembros._
 > ꕥ Fecha » ${fecha}
