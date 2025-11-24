@@ -11,9 +11,9 @@ global.botNumber = "" //Ejemplo: 573218138672
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.owner = ["573196588149", "5492916450307", "5216671548329"]
-global.suittag = ["573196588149"] 
-global.prems = []
+global.owner = ["5492604849203", "5492604631960", "5493772406612"]
+global.suittag = ["5493772406612", "5492604849203"] 
+global.prems = ["5493772406612", "5492604849203"]
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
@@ -25,23 +25,23 @@ global.yukiJadibts = true
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.botname = "ᥡᥙkі sᥙ᥆ᥙ"
-global.textbot = "ᥡᥙkі, mᥲძᥱ ᥕі𝗍һ ᑲᥡ ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ"
-global.dev = "© ⍴᥆ᥕᥱrᥱძ ᑲᥡ ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜"
-global.author = "© mᥲძᥱ ᥕі𝗍һ ᑲᥡ ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜"
-global.etiqueta = "ⁱᵃᵐ|𝔇ĕ𝐬†𝓻⊙γ𒆜"
-global.currency = "¥enes"
-global.banner = "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742678744381.jpeg"
-global.icono = "https://raw.githubusercontent.com/The-King-Destroy/Adiciones/main/Contenido/1742678797993.jpeg"
+global.botname = "ᴀꜱᴀᴋᴜʀᴀ ᴍᴀᴏ ʙᴏᴛ 👑"
+global.textbot = "ᴀꜱᴀᴋᴜʀᴀ ᴍᴀᴏ ʙᴏᴛ 👑 "
+global.dev = "ᴀꜱᴀᴋᴜʀᴀ ᴍᴀᴏ ʙᴏᴛ 👑"
+global.author = "ᴀꜱᴀᴋᴜʀᴀ ᴍᴀᴏ ʙᴏᴛ 👑"
+global.etiqueta = "Sticker"
+global.currency = "Futacoins"
+global.banner = "https://cdn.polyspeak.ai/speakmaster/ac7fbc8034850c8c80679b6396bc3e41.webp"
+global.icono = "https://imagedelivery.net/LBWXYQ-XnKSYxbZ-NuYGqQ/c6f72d7c-03f9-4bb5-5e9c-ee9100ef7800/avatarhd"
 global.catalogo = fs.readFileSync('./lib/catalogo.jpg')
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.group = "https://chat.whatsapp.com/HaKf6ezcwdbGzmH782eBal"
-global.community = "https://chat.whatsapp.com/G0kXqsteJFU74yrLtg79o6"
-global.channel = "https://whatsapp.com/channel/0029Vb64nWqLo4hb8cuxe23n"
-global.github = "https://github.com/The-King-Destroy/YukiBot-MD"
-global.gmail = "thekingdestroy507@gmail.com"
+global.group = ""
+global.community = ""
+global.channel = ""
+global.github = ""
+global.gmail = ""
 global.ch = {
 ch1: "120363401404146384@newsletter"
 }
