@@ -15,8 +15,8 @@ const handler = async (m, { conn }) => {
       q.mediaType ||
       "";
 
-    if (!mime) throw `❗ Debes enviar o responder una imagen con el comando.`;
-    if (!/image\/(jpe?g|png)/.test(mime)) throw `❗ Formato no soportado (${mime}). Usa JPG o PNG.`;
+if (!mime) return conn.reply(m.chat, '❀ Por favor, responde a una imagen con el comando.', m)
+if (!/image\/(jpe?g|png)/.test(mime)) return conn.reply(m.chat, `ꕥ Formato no compatible (${mime}). Usa una imagen jpg o png.`, m)
 
     // Agregar reacción de reloj ⏳ al mensaje original
     const statusReaction = await conn.sendMessage(
