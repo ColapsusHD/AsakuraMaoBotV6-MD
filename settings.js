@@ -37,7 +37,7 @@ global.catalogo = fs.readFileSync('./lib/catalogo.jpg')
 
 //*─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─⭒─ׄ─ׅ─ׄ─*
 
-global.group = ""
+global.group = "https://chat.whatsapp.com/LfLCIRtUyYBHBf9SoAFt9P"
 global.community = ""
 global.channel = ""
 global.github = ""
