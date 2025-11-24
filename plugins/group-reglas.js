@@ -1,4 +1,5 @@
 let handler = async (m, { conn }) => {
+    await conn.sendMessage(m.chat, { react: { text: '📜', key: m.key } })
     m.reply(global.reglas)
 }
 
