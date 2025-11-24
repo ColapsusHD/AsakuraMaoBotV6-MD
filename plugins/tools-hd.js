@@ -1,11 +1,10 @@
 import fetch from 'node-fetch'
-import fs from 'fs'
 import uploadImage from "../lib/uploadImage.js"
 
-const handler = async (m, { conn, usedPrefix, command }) => {
+const handler = async (m, { conn }) => {
   try {
 
-    // Detectar imagen correctamente desde cualquier formato
+    // Detectar la imagen en cualquier tipo de mensaje
     const q =
       m.quoted?.message?.imageMessage
         ? m.quoted
@@ -15,7 +14,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
         ? m.quoted
         : m
 
-    // Buscar mimetype real
+    // Extraer mimetype real desde cualquier estructura
     let mime =
       q.mimetype ||
       q.mediaType ||
@@ -24,12 +23,14 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       m.message?.imageMessage?.mimetype ||
       ""
 
-    // Si envió imagen + comando, mime llega como undefined → asignamos uno válido
-    if (!mime && m.message?.imageMessage) mime = "image/jpeg"
+    // → si la imagen viene con el comando, no trae mimetype
+    if (!mime && m.message?.imageMessage) {
+      mime = "image/jpeg"
+    }
 
-    // Validación real
+    // Validación final
     if (!mime)
-      return m.reply("❀ Por favor, envía o responde una imagen con el comando.")
+      return m.reply("❀ Por favor, envía o responde una imagen.")
 
     if (!/image\/(jpe?g|png)/i.test(mime))
       return m.reply(`ꕥ Formato no compatible (${mime}). Usa JPG o PNG.`)
@@ -37,13 +38,16 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     // Descargar imagen
     let img = await q.download?.()
 
-    // Descarga manual si q.download falla
+    // Descarga manual si falla .download()
     if (!img) {
       const url =
         q.message?.imageMessage?.url ||
         m.message?.imageMessage?.url ||
         null
-      if (!url) return m.reply("⚠︎ No se pudo leer la imagen correctamente.")
+
+      if (!url)
+        return m.reply("⚠︎ No se pudo leer la imagen correctamente.")
+
       const res = await fetch(url)
       img = Buffer.from(await res.arrayBuffer())
     }
@@ -51,20 +55,15 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     if (!img || img.length < 1000)
       return m.reply("⚠︎ Imagen dañada o inválida.")
 
+    // Reacción mientras procesa
     await m.react("🕒")
 
-    // Subir imagen
     const fileUrl = await uploadImage(img)
-
-    // Procesar imagen
     const result = await upscaleWithStellar(fileUrl)
 
     await conn.sendMessage(
       m.chat,
-      {
-        image: result,
-        caption: "✔️ Imagen mejorada correctamente."
-      },
+      { image: result, caption: "✔️ Imagen mejorada correctamente." },
       { quoted: m }
     )
 
@@ -76,16 +75,16 @@ const handler = async (m, { conn, usedPrefix, command }) => {
   }
 }
 
-handler.help = ["remini", "hd", "enhance"]
-handler.tags = ["ai", "tools"]
 handler.command = ["remini", "hd", "enhance"]
+handler.help = ["hd"]
+handler.tags = ["tools"]
 export default handler
 
 async function upscaleWithStellar(url) {
   const endpoint = `https://api.stellarwa.xyz/tools/upscale?url=${url}&key=BrunoSobrino`
   const res = await fetch(endpoint)
 
-  if (!res.ok) throw new Error("Error en el servidor de upscale.")
+  if (!res.ok) throw "Fallo en el servidor."
 
   return Buffer.from(await res.arrayBuffer())
 }
