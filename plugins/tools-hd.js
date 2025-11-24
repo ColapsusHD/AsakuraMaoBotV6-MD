@@ -1,6 +1,6 @@
 import fs from "fs"
 import axios from "axios"
-import uploadImage from "../src/libraries/uploadImage.js"
+import uploadImage from "../lib/uploadImage.js"
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
