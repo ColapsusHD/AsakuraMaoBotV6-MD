@@ -1,60 +1,58 @@
-import fetch from 'node-fetch'
-import FormData from 'form-data'
+import fs from "fs"
+import axios from "axios"
+import uploadImage from "../lib/uploadImage.js"
 
-const handler = async (m, { conn, usedPrefix }) => {
-const q = m.quoted || m
-const mime = (q.msg || q).mimetype || q.mediaType || ''
-if (!mime) return conn.reply(m.chat, '❀ Por favor, responde a una imagen con el comando.', m)
-if (!/image\/(jpe?g|png)/.test(mime)) return conn.reply(m.chat, `ꕥ Formato no compatible (${mime}). Usa una imagen jpg o png.`, m)
-const buffer = await q.download()
-if (!buffer || buffer.length < 1000) return conn.reply(m.chat, '⚠︎ Imagen no válida.', m)
-await m.react('🕒')
-const url = await uploadToUguu(buffer)
-const engines = [upscaleSiputzx, upscaleVreden]
-const wrapped = engines.map(fn => fn(url).then(res => ({ engine: fn.engineName, result: res })).catch(err => Promise.reject({ engine: fn.engineName, error: err })))
-try {
-const { engine, result } = await Promise.any(wrapped)
-await conn.sendFile(m.chat, Buffer.isBuffer(result) ? result : result, 'imagen.jpg', `❀ Imagen mejorada\n» Imagen procesada. Servidor: \`${engine}\``, m)
-await m.react('✔️')
-} catch (err) {
-await m.react('✖️')
-const fallback = Array.isArray(err.errors) ? err.errors.map(e => `• ${e?.engine || 'Desconocido'}: ${e?.error?.message || e?.message || String(e)}`).join('\n') : `• ${err?.engine || 'Desconocido'}: ${err?.error?.message || err?.message || String(err)}`
-await conn.reply(m.chat, `⚠︎ No se pudo mejorar la imagen\n> Usa ${usedPrefix}report para informarlo\n\n${fallback}`, m)
-}}
+const handler = async (m, { conn, usedPrefix, command }) => {
 
-handler.command = ['hd', 'remini', 'enhance']
-handler.help = ['hd']
-handler.tags = ['tools']
+  try {
+    const q = m.quoted ? m.quoted : m
 
+    const mime =
+      q.mimetype ||
+      q.mediaType ||
+      q.msg?.mimetype ||
+      q.mtype ||
+      ""
+
+    if (!mime) throw `Debes responder o enviar una imagen.\nUso: *${usedPrefix + command}*`
+    if (!/image\/(jpe?g|png)/i.test(mime)) throw `El archivo (${mime}) no es una imagen válida.`
+
+    m.reply("Procesando tu imagen, espera un momento…")
+
+    // Descargar imagen
+    const img = await q.download()
+    if (!img) throw "No pude descargar la imagen."
+
+    // Subir imagen
+    const fileUrl = await uploadImage(img)
+
+    // Upscale con Stellar API
+    const resultado = await upscaleWithStellar(fileUrl)
+
+    // Enviar imagen final
+    await conn.sendMessage(
+      m.chat,
+      { image: resultado, caption: "✔️ Imagen mejorada correctamente." },
+      { quoted: m }
+    )
+
+  } catch (e) {
+    throw `⚠️ Ocurrió un error.\n${e}`
+  }
+}
+
+handler.help = ["remini", "hd", "enhance"]
+handler.tags = ["ai", "tools"]
+handler.command = ["remini", "hd", "enhance"]
 export default handler
 
-async function uploadToUguu(buffer) {
-const body = new FormData()
-body.append('files[]', buffer, 'image.jpg')
-const res = await fetch('https://uguu.se/upload.php', { method: 'POST', body, headers: body.getHeaders() })
-const text = await res.text()
-try {
-const json = JSON.parse(text)
-const url = json.files?.[0]?.url
-if (!url || !url.startsWith('https://')) throw new Error(`Respuesta inválida de Uguu.\n> ${text}`)
-return url.trim()
-} catch (e) {
-throw new Error(`Falló al parsear respuesta de Uguu.\n> ${text}`)
-}}
+async function upscaleWithStellar(url) {
+  const endpoint = `https://api.stellarwa.xyz/tools/upscale?url=${url}&key=BrunoSobrino`
 
-async function upscaleSiputzx(url) {
-const res = await fetch(`${global.APIs.siputzx.url}/api/iloveimg/upscale?image=${encodeURIComponent(url)}&scale=4`)
-if (!res.ok) throw new Error(`Siputzx falló con código ${res.status}`)
-return Buffer.from(await res.arrayBuffer())
-}
-upscaleSiputzx.engineName = 'Siputzx'
+  const { data } = await axios.get(endpoint, {
+    responseType: "arraybuffer",
+    headers: { accept: "image/*" }
+  })
 
-async function upscaleVreden(url) {
-const res = await fetch(`${global.APIs.vreden.url}/api/artificial/hdr?url=${encodeURIComponent(url)}&pixel=4`)
-if (!res.ok) throw new Error(`Vreden falló con código ${res.status}`)
-const json = await res.json()
-const finalUrl = json?.resultado?.datos?.descargaUrls?.[0]
-if (!finalUrl || !finalUrl.startsWith('https://')) throw new Error('Respuesta inválida de Vreden')
-return finalUrl
+  return Buffer.from(data)
 }
-upscaleVreden.engineName = 'Vreden'
