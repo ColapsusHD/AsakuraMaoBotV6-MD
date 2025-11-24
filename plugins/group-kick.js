@@ -1,35 +1,28 @@
 const handler = async (m, { conn, text, participants, groupMetadata }) => {
 
-  const getTargetAndReason = () => {
-    let user = null;
-    let reason = null;
+  let target = null;
+  let reason = null;
 
-    // 1) → Mención directa: .ban @user motivo
-    if (m.mentionedJid && m.mentionedJid.length > 0) {
-      user = m.mentionedJid[0];
-      reason = text?.replace(/@\d+/g, "").trim() || null;
-      return { user, reason };
-    }
+  // 1) Mención directa: .ban @usuario
+  if (m.mentionedJid && m.mentionedJid.length > 0) {
+    target = m.mentionedJid[0];
+    reason = text?.replace(/@\d+/g, "").trim() || null;
+  }
 
-    // 2) → Respondiendo: .ban motivo / .ban
-    if (m.quoted?.sender) {
-      user = m.quoted.sender;
-      reason = text?.trim() || null;
-      return { user, reason };
-    }
+  // 2) Respondiendo un mensaje
+  else if (m.quoted?.sender) {
+    target = m.quoted.sender;
+    reason = text?.trim() || null;
+  }
 
-    // 3) → ContextInfo (WhatsApp a veces pone menciones acá)
+  // 3) Menciones ocultas en contextInfo
+  else {
     const ctx = m.message?.extendedTextMessage?.contextInfo;
     if (ctx?.mentionedJid?.length > 0) {
-      user = ctx.mentionedJid[0];
+      target = ctx.mentionedJid[0];
       reason = text?.replace(/@\d+/g, "").trim() || null;
-      return { user, reason };
     }
-
-    return { user: null, reason: null };
-  };
-
-  const { user: target, reason } = getTargetAndReason();
+  }
 
   // Si no detecta usuario
   if (!target) {
@@ -46,23 +39,21 @@ const handler = async (m, { conn, text, participants, groupMetadata }) => {
   if (target === conn.user.jid)
     return m.reply("❗ No puedo expulsarme a mí mismo.");
 
-  // ------ NUEVO: EVITAR BANEAR ADMINS Y OWNER ------
-
+  // Obtener admins del grupo
   const groupAdmins = participants
-    .filter((p) => p.admin === "admin" || p.admin === "superadmin")
-    .map((p) => p.id);
+    .filter(p => p.admin === "admin" || p.admin === "superadmin")
+    .map(p => p.id);
 
-  const owner = groupMetadata.owner || groupAdmins[0]; // fallback por si WhatsApp no envía owner
+  const owner = groupMetadata.owner || groupAdmins[0];
 
+  // ❌ NO EXPULSAR ADMIN JAMÁS
   if (target === owner) {
-    return m.reply("❗ No puedo expulsar al *propietario* del grupo.");
+    return m.reply("❗ No puedo expulsar al propietario del grupo.");
   }
 
   if (groupAdmins.includes(target)) {
-    return m.reply("❗ No puedo expulsar a un *administrador*.");
+    return m.reply("❗ No puedo expulsar a un administrador del grupo.");
   }
-
-  // ----------------------------------------------------
 
   const kickReason = reason || "No especificado";
 
@@ -81,12 +72,12 @@ const handler = async (m, { conn, text, participants, groupMetadata }) => {
     mentions: [target, m.sender]
   });
 
-  await new Promise(r => setTimeout(r, 1000));
+  await new Promise(r => setTimeout(r, 800));
 
   try {
     await conn.groupParticipantsUpdate(m.chat, [target], "remove");
   } catch (e) {
-    m.reply("⚠ Ocurrió un error al expulsar al usuario.");
+    return m.reply("⚠ Ocurrió un error al expulsar al usuario.");
   }
 };
 
