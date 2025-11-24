@@ -47,6 +47,22 @@ const handler = async (m, { conn, text }) => {
 
   const kickReason = reason || "No especificado";
 
+   // Obtener roles del grupo
+  const groupAdmins = participants
+    .filter(p => p.admin === 'admin' || p.admin === 'superadmin')
+    .map(p => p.id);
+
+  const isTargetAdmin = groupAdmins.includes(user);
+  const isBotAdmin = groupAdmins.includes(conn.user.jid);
+
+  // Verificar si bot es admin
+  if (!isBotAdmin) return m.reply('❌ Necesito ser admin para expulsar usuarios.');
+
+  // Evitar expulsar admins
+  if (isTargetAdmin) {
+    return m.reply(`❌ No puedo expulsar a un administrador del grupo.`);
+  }
+  
   // Mensaje de anuncio
   const msg = `╭─⬣「 🚫 *EXPULSIÓN* 🚫 」⬣
 │
