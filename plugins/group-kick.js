@@ -1,4 +1,4 @@
-const handler = async (m, { conn, text }) => {
+const handler = async (m, { conn, text, participants, groupMetadata }) => {
 
   const getTargetAndReason = () => {
     let user = null;
@@ -18,7 +18,7 @@ const handler = async (m, { conn, text }) => {
       return { user, reason };
     }
 
-    // 3) → ContextInfo (WhatsApp a veces pone menciones acá)
+    // 3) → ContextInfo
     const ctx = m.message?.extendedTextMessage?.contextInfo;
     if (ctx?.mentionedJid?.length > 0) {
       user = ctx.mentionedJid[0];
@@ -31,7 +31,7 @@ const handler = async (m, { conn, text }) => {
 
   const { user: target, reason } = getTargetAndReason();
 
-  // Si no detecta usuario en ninguno de los modos
+  // Si no detecta usuario
   if (!target) {
     return m.reply(
       `❗ Debes mencionar o responder a un usuario.\n\nEjemplos:\n` +
@@ -45,24 +45,26 @@ const handler = async (m, { conn, text }) => {
   // Evitar autokick
   if (target === conn.user.jid) return m.reply("❗ No puedo expulsarme a mí mismo.");
 
-  const kickReason = reason || "No especificado";
-
-   // Obtener roles del grupo
+  // Obtener admins del grupo
   const groupAdmins = participants
-    .filter(p => p.admin === 'admin' || p.admin === 'superadmin')
+    .filter(p => p.admin)
     .map(p => p.id);
 
-  const isTargetAdmin = groupAdmins.includes(user);
-  const isBotAdmin = groupAdmins.includes(conn.user.jid);
+  const owner = groupMetadata.owner || groupAdmins[0]; // fallback
 
-  // Verificar si bot es admin
-  if (!isBotAdmin) return m.reply('❌ Necesito ser admin para expulsar usuarios.');
-
-  // Evitar expulsar admins
-  if (isTargetAdmin) {
-    return m.reply(`❌ No puedo expulsar a un administrador del grupo.`);
+  // ❌ Evitar banear al creador
+  if (target === owner) {
+    return m.reply("❗ No puedo expulsar al propietario del grupo.");
   }
-  
+
+  // ❌ Evitar banear admins
+  if (groupAdmins.includes(target)) {
+    return m.reply("❗ No puedo expulsar a un administrador del grupo.");
+  }
+
+  // Motivo
+  const kickReason = reason || "No especificado";
+
   // Mensaje de anuncio
   const msg = `╭─⬣「 🚫 *EXPULSIÓN* 🚫 」⬣
 │
