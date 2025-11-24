@@ -5,6 +5,8 @@ let handler = async (m, { conn }) => {
     return m.reply(`ꕥ El contenido *NSFW* está desactivado en este grupo.\n\nUn *administrador* puede activarlo con:\n» *${usedPrefix}nsfw on*`)
   }
 
+  await conn.sendMessage(m.chat, { react: { text: '🔥', key: m.key } })
+
   let url = futanari[Math.floor(Math.random() * futanari.length)]
   conn.sendFile(m.chat, url, null, `*_ACA TIENES UNA RICA FUTANARI SOLA 🔥_*`, m)
 }
