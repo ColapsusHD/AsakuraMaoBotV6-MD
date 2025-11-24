@@ -55,7 +55,8 @@ handler.before = async function (m, { conn, groupMetadata }) {
 
     await conn.sendMessage(
       m.chat,
-      { text: texto }
+      { text: texto, ...rcanal },
+      { quoted: null }
     )
   }
 }
