@@ -1,0 +1,28 @@
+let handler = async (m, { conn }) => {
+    await conn.sendMessage(m.chat, { react: { text: '🎲', key: m.key } })
+    m.reply(global.rolgacha)
+}
+
+handler.help = ['rolgacha']
+handler.tags = ['grupo']
+handler.command = ['rolgacha', 'gachainfo', 'infog']
+handler.group = true
+
+export default handler
+
+global.rolgacha = `🌸| *Comandos Gacha:*
+
+_*[BOT MITAMA]*_
+• #rw - Girar waifu.
+• #waifus - Ver tus waifus.
+• #c - Reclamar waifu.
+• #ginfo - Ver tu información de gacha (cooldown).
+• #trade [Tu waifu] [Waifu del otro usuario] - Intercambiar waifus.
+• #wshop - Ver waifus en venta.
+• #sell [Precio] [Waifu] - Poner waifu en venta.
+• #buyc [Waifu] - Comprar waifu en venta.
+• #delwaifu [Waifu] - Eliminar waifu reclamada.
+• #givechar [@usuario] [Waifu] - Regalar waifu a un usuario.
+
+_° Más comandos usando #menu → sección Gacha._
+`
