@@ -1,10 +1,11 @@
 import fetch from 'node-fetch'
 import fs from 'fs'
-import uploadImage from "../lib/uploadImage.js"
+import uploadImage from "../src/libraries/uploadImage.js"
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    // Detectar imagen desde cualquier origen
+
+    // Detectar imagen correctamente desde cualquier formato
     const q =
       m.quoted?.message?.imageMessage
         ? m.quoted
@@ -14,7 +15,8 @@ const handler = async (m, { conn, usedPrefix, command }) => {
         ? m.quoted
         : m
 
-    const mime =
+    // Buscar mimetype real
+    let mime =
       q.mimetype ||
       q.mediaType ||
       q.msg?.mimetype ||
@@ -22,22 +24,25 @@ const handler = async (m, { conn, usedPrefix, command }) => {
       m.message?.imageMessage?.mimetype ||
       ""
 
-    if (!mime && !m.message?.imageMessage)
+    // Si envió imagen + comando, mime llega como undefined → asignamos uno válido
+    if (!mime && m.message?.imageMessage) mime = "image/jpeg"
+
+    // Validación real
+    if (!mime)
       return m.reply("❀ Por favor, envía o responde una imagen con el comando.")
 
     if (!/image\/(jpe?g|png)/i.test(mime))
       return m.reply(`ꕥ Formato no compatible (${mime}). Usa JPG o PNG.`)
 
-    // Intento normal
+    // Descargar imagen
     let img = await q.download?.()
 
-    // Descarga manual si falla
+    // Descarga manual si q.download falla
     if (!img) {
       const url =
         q.message?.imageMessage?.url ||
         m.message?.imageMessage?.url ||
         null
-
       if (!url) return m.reply("⚠︎ No se pudo leer la imagen correctamente.")
       const res = await fetch(url)
       img = Buffer.from(await res.arrayBuffer())
@@ -51,7 +56,7 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     // Subir imagen
     const fileUrl = await uploadImage(img)
 
-    // SINGLE ENGINE — basándome en tu código original
+    // Procesar imagen
     const result = await upscaleWithStellar(fileUrl)
 
     await conn.sendMessage(
