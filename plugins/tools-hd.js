@@ -57,7 +57,7 @@ if (!/image\/(jpe?g|png)/.test(mime)) return conn.reply(m.chat, `ꕥ Formato no 
       m.chat,
       {
         react: {
-          text: "✔️",
+          text: "✅",
           key: m.key
         }
       }
