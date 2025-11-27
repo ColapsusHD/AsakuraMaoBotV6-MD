@@ -1,91 +1,48 @@
-const handler = async (m, { conn, text, participants, groupMetadata }) => {
+var handler = async (m, { conn, participants, usedPrefix, command, text }) => {
+    // 1. Obtener al usuario objetivo (mencionado o citado)
+    let mentionedJid = await m.mentionedJid
+    let user = mentionedJid && mentionedJid.length ? mentionedJid[0] : m.quoted && await m.quoted.sender ? await m.quoted.sender : null
+    
+    if (!user) return conn.reply(m.chat, ❀ Debes mencionar a un usuario para poder expulsarlo del grupo., m)
 
-  let target = null;
-  let reason = null;
+    try {
+        const groupInfo = await conn.groupMetadata(m.chat)
+        const ownerGroup = groupInfo.owner || m.chat.split`-`[0] + '@s.whatsapp.net'
+        const ownerBot = global.owner[0][0] + '@s.whatsapp.net'
+        
+        // 2. Verificar si el usuario objetivo es administrador
+        // Buscamos al usuario dentro de la lista de participantes actual
+        let targetUser = participants.find(p => p.id === user)
+        if (targetUser && (targetUser.admin === 'admin' || targetUser.admin === 'superadmin')) {
+            return conn.reply(m.chat, ⚠ No puedo expulsar a un administrador del grupo., m)
+        }
 
-  // 1) Mención directa: .ban @usuario
-  if (m.mentionedJid && m.mentionedJid.length > 0) {
-    target = m.mentionedJid[0];
-    reason = text?.replace(/@\d+/g, "").trim() || null;
-  }
+        // 3. Verificaciones de seguridad (Bot, Dueño del Grupo, Dueño del Bot)
+        if (user === conn.user.jid) return conn.reply(m.chat, ꕥ No puedo eliminar el bot del grupo., m)
+        if (user === ownerGroup) return conn.reply(m.chat, ꕥ No puedo eliminar al propietario del grupo., m)
+        if (user === ownerBot) return conn.reply(m.chat, ꕥ No puedo eliminar al propietario del bot., m)
 
-  // 2) Respondiendo un mensaje
-  else if (m.quoted?.sender) {
-    target = m.quoted.sender;
-    reason = text?.trim() || null;
-  }
+        // 4. Procesar el motivo
+        // Limpiamos el texto para quitar la mención (@usuario) y dejar solo el motivo si existe
+        let reason = text.replace(/@\d+/g, '').trim()
+        if (!reason) reason = 'Sin motivo especificado'
 
-  // 3) Menciones ocultas en contextInfo
-  else {
-    const ctx = m.message?.extendedTextMessage?.contextInfo;
-    if (ctx?.mentionedJid?.length > 0) {
-      target = ctx.mentionedJid[0];
-      reason = text?.replace(/@\d+/g, "").trim() || null;
+        // 5. Mensaje de despedida con motivo y Acción de expulsar
+        await conn.reply(m.chat, _Usuario eliminado_\n\n*👤 Usuario:* @${user.split('@')[0]}\n*📝 Motivo:* ${reason}, m, { mentions: [user] })
+        
+        await conn.groupParticipantsUpdate(m.chat, [user], 'remove')
+
+    } catch (e) {
+        console.error(e) // Es útil ver el error en la consola
+        conn.reply(m.chat, ⚠ Se ha producido un problema.\n> Usa *${usedPrefix}report* para informarlo.\n\n${e.message}, m)
     }
-  }
+}
 
-  // Si no detecta usuario
-  if (!target) {
-    return m.reply(
-      `❗ Debes mencionar o responder a un usuario.\n\nEjemplos:\n` +
-      `• *${m.prefix}ban @usuario*\n` +
-      `• *${m.prefix}ban @usuario motivo*\n` +
-      `• *${m.prefix}ban* (respondiendo)\n` +
-      `• *${m.prefix}ban motivo* (respondiendo)`
-    );
-  }
+handler.help = ['kick']
+handler.tags = ['grupo']
+handler.command = ['kick', 'echar', 'hechar', 'sacar', 'ban']
+handler.admin = true
+handler.group = true
+handler.botAdmin = true
 
-  // Evitar autokick del bot
-  if (target === conn.user.jid)
-    return m.reply("❗ No puedo expulsarme a mí mismo.");
-
-  // Obtener admins del grupo
-  const groupAdmins = participants
-    .filter(p => p.admin === "admin" || p.admin === "superadmin")
-    .map(p => p.id);
-
-  const owner = groupMetadata.owner || groupAdmins[0];
-
-  // ❌ NO EXPULSAR ADMIN JAMÁS
-  if (target === owner) {
-    return m.reply("❗ No puedo expulsar al propietario del grupo.");
-  }
-
-  if (groupAdmins.includes(target)) {
-    return m.reply("❗ No puedo expulsar a un administrador del grupo.");
-  }
-
-  const kickReason = reason || "No especificado";
-
-  // Mensaje de anuncio
-  const msg = `╭─⬣「 🚫 *EXPULSIÓN* 🚫 」⬣
-│
-├❯ *Usuario:* @${target.split('@')[0]}
-├❯ *Acción:* Expulsado del grupo
-├❯ *Motivo:* ${kickReason}
-├❯ *Admin:* @${m.sender.split('@')[0]}
-│
-╰─⬣ *Adiós*`;
-
-  await conn.sendMessage(m.chat, {
-    text: msg,
-    mentions: [target, m.sender]
-  });
-
-  await new Promise(r => setTimeout(r, 800));
-
-  try {
-    await conn.groupParticipantsUpdate(m.chat, [target], "remove");
-  } catch (e) {
-    return m.reply("⚠ Ocurrió un error al expulsar al usuario.");
-  }
-};
-
-handler.help = ['ban', 'kick', 'echar', 'expulsar'];
-handler.tags = ['group'];
-handler.command = ['ban', 'kick', 'echar', 'expulsar', 'eliminar', 'sacar'];
-handler.admin = true;
-handler.group = true;
-handler.botAdmin = true;
-
-export default handler;
+export default handler
